@@ -25,6 +25,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                                                    .UseSnakeCaseNamingConvention());
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductTypeService, ProductTypeService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ICompanyUserService, CompanyUserService>();
 
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
