@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniMES_API.DTOs;
-using MiniMES_API.Services;
+using MiniMES_API.Services.Domain;
 
 namespace MiniMES_API.Controllers;
 

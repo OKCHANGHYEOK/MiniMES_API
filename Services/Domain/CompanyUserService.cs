@@ -3,7 +3,7 @@ using MiniMES_API.DTOs;
 using MiniMES_API.Entities;
 using MiniMES_API.Infrastructure;
 
-namespace MiniMES_API.Services;
+namespace MiniMES_API.Services.Domain;
 
 public sealed class CompanyUserService : ICompanyUserService
 {

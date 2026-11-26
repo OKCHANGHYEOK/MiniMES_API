@@ -1,6 +1,6 @@
 using MiniMES_API.DTOs;
 
-namespace MiniMES_API.Services;
+namespace MiniMES_API.Services.Domain;
 
 public interface IProductTypeService
 {
