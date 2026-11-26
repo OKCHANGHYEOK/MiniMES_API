@@ -19,12 +19,7 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> GetProducts([FromQuery] Product_Req request, CancellationToken cancellationToken)
     {
         var ret = await _productService.GetProductsAsync(request, cancellationToken);
-        if (ret.Count == 0)
-        {
-            return NoContent();
-        }
-
-        return Ok(ret);
+        return ret.IsSuccess ? Ok(ret) : StatusCode(ret.ResponseCode, ret);
     }
 
     // 단건 조회
@@ -32,7 +27,7 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> GetProduct(int id, CancellationToken cancellationToken)
     {
         var product = await _productService.GetByIdAsync(id, cancellationToken);
-        return product is null ? NotFound() : Ok(product);
+        return product.IsSuccess ? Ok(product) : StatusCode(product.ResponseCode, product);
     }
 
     // 등록
@@ -40,14 +35,9 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> CreateProduct([FromBody] Product_Req request, CancellationToken cancellationToken)
     {
         var ret = await _productService.CreateAsync(request, cancellationToken);
-        if (ret is null)
-        {
-            return BadRequest();
-        }
-
-        return CreatedAtAction(nameof(CreateProduct),
-                               new { id = ret.ProductId },
-                               ret);
+        return ret.IsSuccess
+            ? CreatedAtAction(nameof(GetProduct), new { id = ret.Item!.ProductId }, ret)
+            : StatusCode(ret.ResponseCode, ret);
     }
 
     // 수정
@@ -56,7 +46,7 @@ public sealed class ProductsController : ControllerBase
     {
         var ret = await _productService.UpdateAsync(id, request, cancellationToken);
 
-        return ret ? NoContent() : NotFound();
+        return ret.IsSuccess ? Ok(ret) : StatusCode(ret.ResponseCode, ret);
     }
 
     // 삭제
@@ -64,6 +54,6 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
     {
         var deleted = await _productService.DeleteAsync(id, cancellationToken);
-        return deleted ? NoContent() : NotFound();
+        return deleted.IsSuccess ? Ok(deleted) : StatusCode(deleted.ResponseCode, deleted);
     }
 }

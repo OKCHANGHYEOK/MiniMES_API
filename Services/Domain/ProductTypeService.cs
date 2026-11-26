@@ -15,7 +15,7 @@ public sealed class ProductTypeService : IProductTypeService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<ProductType_Res>> GetProductTypesAsync(ProductType_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<ProductType_Res>> GetProductTypesAsync(ProductType_Req request, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.ProductTypes.AsNoTracking()
                                            .AsQueryable();
@@ -36,58 +36,61 @@ public sealed class ProductTypeService : IProductTypeService
                                      x.ProductTypeCode.Contains(request.keyword));
         }
 
-        return [.. query.Select(x => x.ToResponse<ProductType_Res>()!)];
+        var productTypes = await query.ToListAsync(cancellationToken);
+        return DataResponse<ProductType_Res>.Success(items: productTypes.Select(x => x.ToResponse<ProductType_Res>()!).ToList());
     }
 
-    public async Task<ProductType_Res?> GetByIdAsync(int productTypeId, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<ProductType_Res>> GetByIdAsync(int productTypeId, CancellationToken cancellationToken = default)
     {
         var query = await _dbContext.ProductTypes.AsNoTracking().SingleOrDefaultAsync(x => x.ProductTypeId == productTypeId, cancellationToken);
 
-        return query?.ToResponse<ProductType_Res>();
+        return query is null
+            ? DataResponse<ProductType_Res>.Failure(404, "상품 유형을 찾을 수 없습니다.")
+            : DataResponse<ProductType_Res>.Success(item: query.ToResponse<ProductType_Res>());
     }
 
-    public async Task<ProductType_Res?> CreateAsync(ProductType_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<ProductType_Res>> CreateAsync(ProductType_Req request, CancellationToken cancellationToken = default)
     {
         var item = request.ToEntity<ProductType>();        
         if (item is null)
         {
-            return null;
+            return DataResponse<ProductType_Res>.Failure(400, "상품 유형 정보를 생성할 수 없습니다.");
         }
 
         var query = await _dbContext.ProductTypes.AddAsync(item, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return item.ToResponse<ProductType_Res>();
+        return DataResponse<ProductType_Res>.Success(item.ToResponse<ProductType_Res>(), responseCode: 201, message: "상품 유형이 생성되었습니다.");
     }
 
-    public async Task<bool> UpdateAsync(int productTypeId, ProductType_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<ProductType_Res>> UpdateAsync(int productTypeId, ProductType_Req request, CancellationToken cancellationToken = default)
     {
         var oldItem = await _dbContext.ProductTypes.SingleOrDefaultAsync(x => x.ProductTypeId == productTypeId, cancellationToken);
         if (oldItem is null)
-            return false;
+            return DataResponse<ProductType_Res>.Failure(404, "상품 유형을 찾을 수 없습니다.");
 
         var newItem = request.ToEntity<ProductType>();
         if (newItem is null)
-            return false;
+            return DataResponse<ProductType_Res>.Failure(400, "상품 유형 정보를 수정할 수 없습니다.");
 
         EntityMapper.Map(oldItem, newItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return DataResponse<ProductType_Res>.Success(oldItem.ToResponse<ProductType_Res>(), message: "상품 유형이 수정되었습니다.");
     }
 
-    public async Task<bool> DeleteAsync(int productTypeId, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<ProductType_Res>> DeleteAsync(int productTypeId, CancellationToken cancellationToken = default)
     {
         var delItem = await _dbContext.ProductTypes.SingleOrDefaultAsync(x => x.ProductTypeId == productTypeId, cancellationToken);
         if (delItem is null)
-            return false;
+            return DataResponse<ProductType_Res>.Failure(404, "상품 유형을 찾을 수 없습니다.");
 
         _dbContext.ProductTypes.Remove(delItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return DataResponse<ProductType_Res>.Success(message: "상품 유형이 삭제되었습니다.");
     }
 }
