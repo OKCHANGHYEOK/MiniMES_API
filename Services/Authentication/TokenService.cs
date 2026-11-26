@@ -22,6 +22,8 @@ public class TokenService
 
         var claimns = new[]
         {
+            new Claim("CompanyId", user.CompanyId.ToString()),
+            new Claim("CompanyUserId", user.CompanyUserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, user.LoginId),
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.Role, user.Position ?? "USR"),
@@ -30,7 +32,7 @@ public class TokenService
 
         var crendentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)), SecurityAlgorithms.HmacSha256);
         var expires = DateTime.Now.AddMinutes(jwtSection.GetValue<int>("AccessTokentMinutes"));
-        var token = new JwtSecurityToken(issuer: jwtSection["Issure"], audience: jwtSection["Audience"], claims: claimns, expires: expires, signingCredentials: crendentials);
+        var token = new JwtSecurityToken(issuer: jwtSection["Issuer"], audience: jwtSection["Audience"], claims: claimns, expires: expires, signingCredentials: crendentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

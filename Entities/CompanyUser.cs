@@ -7,6 +7,7 @@ public class CompanyUser : BaseEntity
 
     // 계정 정보
     public string LoginId { get; set; } = string.Empty;
+    public string PasswordOrigin { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
 
     // 기본 정보

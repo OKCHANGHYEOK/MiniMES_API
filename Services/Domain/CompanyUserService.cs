@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniMES_API.DTOs;
 using MiniMES_API.Entities;
@@ -8,10 +9,12 @@ namespace MiniMES_API.Services.Domain;
 public sealed class CompanyUserService : ICompanyUserService
 {
     private readonly AppDbContext _dbContext;
+    private readonly IPasswordHasher<CompanyUser> _passwordHasher;
 
-    public CompanyUserService(AppDbContext dbContext)
+    public CompanyUserService(AppDbContext dbContext, IPasswordHasher<CompanyUser> passwordHasher)
     {
         _dbContext = dbContext;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<DataResponse<CompanyUser_Res>> GetCompanyUsersAsync(CompanyUser_Req request, CancellationToken cancellationToken = default)
@@ -66,11 +69,18 @@ public sealed class CompanyUserService : ICompanyUserService
             return DataResponse<CompanyUser_Res>.Failure(404, "소속 회사를 찾을 수 없습니다.");
         }
 
+        if (string.IsNullOrWhiteSpace(request.PasswordOrigin))
+        {
+            return DataResponse<CompanyUser_Res>.Failure(400, "비밀번호를 입력해주세요.");
+        }
+
         var user = request.ToEntity<CompanyUser>();
         if (user is null)
         {
             return DataResponse<CompanyUser_Res>.Failure(400, "회사 사용자 정보를 생성할 수 없습니다.");
         }
+
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.PasswordOrigin);
 
         _dbContext.CompanyUsers.Add(user);
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -124,6 +124,7 @@ public class AppDbContext : DbContext
             entity.Property(companyUser => companyUser.PasswordHash)
                 .HasMaxLength(500)
                 .IsRequired();
+            entity.Ignore(companyUser => companyUser.PasswordOrigin);
             entity.Property(companyUser => companyUser.UserName)
                 .HasMaxLength(100)
                 .IsRequired();

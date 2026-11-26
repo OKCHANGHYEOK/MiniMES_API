@@ -4,6 +4,7 @@ public sealed class CompanyUser_Req : BaseDTO
 {
     public long CompanyId { get; set; }
     public string LoginId { get; set; } = string.Empty;
+    public string PasswordOrigin { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string? EmployeeNumber { get; set; }
