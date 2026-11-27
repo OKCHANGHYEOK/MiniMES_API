@@ -2,8 +2,8 @@
 
 public class CompanyUser : BaseEntity
 {
-    public long CompanyUserId { get; set; }
-    public long CompanyId { get; set; }
+    public int CompanyUserId { get; set; }
+    public int CompanyId { get; set; }
 
     // 계정 정보
     public string LoginId { get; set; } = string.Empty;

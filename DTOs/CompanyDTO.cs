@@ -26,5 +26,5 @@ public sealed class Company_Req : CompanyDTO
 
 public sealed class Company_Res : CompanyDTO
 {
-    public long CompanyId { get; set; }
+    public int CompanyId { get; set; }
 }

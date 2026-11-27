@@ -3,7 +3,7 @@
 
 public class Company : BaseEntity
 {
-    public long CompanyId { get; set; }
+    public int CompanyId { get; set; }
 
     // 기업 기본 정보
     public string CompanyCode { get; set; } = string.Empty;

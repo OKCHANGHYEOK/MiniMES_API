@@ -2,7 +2,7 @@ namespace MiniMES_API.DTOs;
 
 public sealed class CompanyUser_Req : BaseDTO
 {
-    public long CompanyId { get; set; }
+    public int CompanyId { get; set; }
     public string LoginId { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
@@ -20,8 +20,8 @@ public sealed class CompanyUser_Req : BaseDTO
 
 public sealed class CompanyUser_Res : BaseDTO
 {
-    public long CompanyUserId { get; set; }
-    public long CompanyId { get; set; }
+    public int CompanyUserId { get; set; }
+    public int CompanyId { get; set; }
     public string LoginId { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string? EmployeeNumber { get; set; }
