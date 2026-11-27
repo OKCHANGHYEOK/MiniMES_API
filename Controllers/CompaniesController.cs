@@ -19,36 +19,36 @@ public sealed class CompaniesController : ControllerBase
     public async Task<IActionResult> GetCompanies([FromQuery] Company_Req request, CancellationToken cancellationToken)
     {
         var companies = await _companyService.GetCompaniesAsync(request, cancellationToken);
-        return companies.Count == 0 ? NoContent() : Ok(companies);
+        return companies.IsSuccess ? Ok(companies) : StatusCode(companies.ResponseCode, companies);
     }
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetCompany(long id, CancellationToken cancellationToken)
     {
         var company = await _companyService.GetByIdAsync(id, cancellationToken);
-        return company is null ? NotFound() : Ok(company);
+        return company.IsSuccess ? Ok(company) : StatusCode(company.ResponseCode, company);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateCompany([FromBody] Company_Req request, CancellationToken cancellationToken)
     {
         var company = await _companyService.CreateAsync(request, cancellationToken);
-        return company is null
-            ? BadRequest()
-            : CreatedAtAction(nameof(GetCompany), new { id = company.CompanyId }, company);
+        return company.IsSuccess
+            ? CreatedAtAction(nameof(GetCompany), new { id = company.Item!.CompanyId }, company)
+            : StatusCode(company.ResponseCode, company);
     }
 
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateCompany(long id, [FromBody] Company_Req request, CancellationToken cancellationToken)
     {
         var updated = await _companyService.UpdateAsync(id, request, cancellationToken);
-        return updated ? NoContent() : NotFound();
+        return updated.IsSuccess ? Ok(updated) : StatusCode(updated.ResponseCode, updated);
     }
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> DeleteCompany(long id, CancellationToken cancellationToken)
     {
         var deleted = await _companyService.DeleteAsync(id, cancellationToken);
-        return deleted ? NoContent() : NotFound();
+        return deleted.IsSuccess ? Ok(deleted) : StatusCode(deleted.ResponseCode, deleted);
     }
 }

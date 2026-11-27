@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MiniMES_API.Entities;
 using MiniMES_API.Infrastructure;
 using MiniMES_API.Services.Authentication;
 using MiniMES_API.Services.Domain;
@@ -33,10 +36,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductTypeService, ProductTypeService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ICompanyUserService, CompanyUserService>();
+builder.Services.AddScoped<IPasswordHasher<CompanyUser>, PasswordHasher<CompanyUser>>();
 
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -61,6 +66,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -100,5 +106,8 @@ void SetJwtAutentication(WebApplicationBuilder builder)
                         };
                     });
 
-    builder.Services.AddAuthorization();
+    builder.Services.AddAuthorizationBuilder()
+                    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build());
 }

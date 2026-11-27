@@ -14,7 +14,7 @@ public sealed class CompanyService : ICompanyService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<Company_Res>> GetCompaniesAsync(Company_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<Company_Res>> GetCompaniesAsync(Company_Req request, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Companies.AsNoTracking().AsQueryable();
 
@@ -37,47 +37,49 @@ public sealed class CompanyService : ICompanyService
         var companies = await query.OrderBy(company => company.CompanyId)
                                    .ToListAsync(cancellationToken);
 
-        return [.. companies.Select(company => company.ToResponse<Company_Res>()!)];
+        return DataResponse<Company_Res>.Success(items: companies.Select(company => company.ToResponse<Company_Res>()!).ToList());
     }
 
-    public async Task<Company_Res?> GetByIdAsync(long companyId, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<Company_Res>> GetByIdAsync(long companyId, CancellationToken cancellationToken = default)
     {
         var company = await _dbContext.Companies
                                        .AsNoTracking()
                                        .SingleOrDefaultAsync(current => current.CompanyId == companyId,
                                                              cancellationToken);
 
-        return company?.ToResponse<Company_Res>();
+        return company is null
+            ? DataResponse<Company_Res>.Failure(404, "회사를 찾을 수 없습니다.")
+            : DataResponse<Company_Res>.Success(item: company.ToResponse<Company_Res>());
     }
 
-    public async Task<Company_Res?> CreateAsync(Company_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<Company_Res>> CreateAsync(Company_Req request, CancellationToken cancellationToken = default)
     {
         var company = request.ToEntity<Company>();
         if (company is null)
         {
-            return null;
+            return DataResponse<Company_Res>.Failure(400, "회사 정보를 생성할 수 없습니다.");
         }
 
         _dbContext.Companies.Add(company);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return company.ToResponse<Company_Res>();
+        return DataResponse<Company_Res>.Success(company.ToResponse<Company_Res>(), responseCode: 201, message: "회사가 생성되었습니다.");
     }
 
-    public async Task<bool> UpdateAsync(long companyId, Company_Req request, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<Company_Res>> UpdateAsync(long companyId, Company_Req request, CancellationToken cancellationToken = default)
     {
         var company = await _dbContext.Companies
                                        .SingleOrDefaultAsync(current => current.CompanyId == companyId,
                                                              cancellationToken);
         if (company is null)
         {
-            return false;
+            return DataResponse<Company_Res>.Failure(404, "회사를 찾을 수 없습니다.");
         }
 
         var updatedCompany = request.ToEntity<Company>();
         if (updatedCompany is null)
         {
-            return false;
+            return DataResponse<Company_Res>.Failure(400, "회사 정보를 수정할 수 없습니다.");
         }
 
         company.CompanyCode = updatedCompany.CompanyCode;
@@ -99,21 +101,21 @@ public sealed class CompanyService : ICompanyService
         company.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        return DataResponse<Company_Res>.Success(company.ToResponse<Company_Res>(), message: "회사가 수정되었습니다.");
     }
 
-    public async Task<bool> DeleteAsync(long companyId, CancellationToken cancellationToken = default)
+    public async Task<DataResponse<Company_Res>> DeleteAsync(long companyId, CancellationToken cancellationToken = default)
     {
         var company = await _dbContext.Companies
                                        .SingleOrDefaultAsync(current => current.CompanyId == companyId,
                                                              cancellationToken);
         if (company is null)
         {
-            return false;
+            return DataResponse<Company_Res>.Failure(404, "회사를 찾을 수 없습니다.");
         }
 
         _dbContext.Companies.Remove(company);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        return DataResponse<Company_Res>.Success(message: "회사가 삭제되었습니다.");
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MiniMES_API.DTOs;
 using MiniMES_API.Services.Authentication;
 
@@ -16,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] CompanyUser_Req user)
     {
         var authentication = await _authenticationService.SetAutentication(user);           
@@ -23,6 +25,8 @@ public class AuthController : ControllerBase
         {
             return authentication.ResponseCode switch
             {
+                401 => Unauthorized(authentication.Message),
+                403 => StatusCode(StatusCodes.Status403Forbidden, authentication.Message),
                 404 => NotFound(authentication.Message),
                 500 => StatusCode(StatusCodes.Status500InternalServerError, new { authentication.Message }),
                 _ => StatusCode(StatusCodes.Status400BadRequest)
